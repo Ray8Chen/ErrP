@@ -18,7 +18,7 @@ eegData(isnan(eegData)) = -1;
 
 
 % Extract EEG channel data and Event Id
-eegChannels = eegData{:, 3:18};  % Adjust the indices based on your specific columns
+eegChannels = eegData{:, 3:18};  % Adjust the indices based on specific columns
 eventIds = eegData.EventId;
 
 
