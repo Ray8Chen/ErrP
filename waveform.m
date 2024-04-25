@@ -18,8 +18,8 @@ eegData(isnan(eegData)) = -1;
 
 
 % Extract EEG channel data and Event Id
-eegChannels = eegData{:, 3:18};  % Adjust the indices based on specific columns
-eventIds = eegData.EventId;
+eegChannels = eegData(:, 3:18);  % Adjust the indices based on specific columns
+eventIds = eegData(:, 19);
 
 
 % Assume eegData is the data matrix, samplingRate is 512 Hz
@@ -78,4 +78,5 @@ function plotErrP(epochs)
     title('Averaged ErrP Waveforms');
     hold off;
 end
+
 
