@@ -1,5 +1,5 @@
 % Define the path to your CSV file
-filePath = 'Ziyue-testing-record-[2024.04.18-17.14.08] (1).csv';  % Update this with the correct path
+filePath = 'Jianan-testing-[2024.05.16-15.18.15].csv';  % Update this with the correct path
 
 % Load the data
 data = readtable(filePath);
@@ -28,8 +28,10 @@ eventIds = eegData(:, 19);
 % Step 1: Filter the data
 filteredEEG = filteredData(eegChannels, 512);
 
-% Step 2: Extract error epochs
-Epochs = epochs(filteredEEG, eventIds, 512);
+% Step 2: Extract error/correct epochs; call function 'errorepochs' or
+% 'correctepochs'; error epochs marked by eventId == 0, correct epochs
+% marked by eventId == 1
+Epochs = errorepochs(filteredEEG, eventIds, 512);
 
 % Step 3: Plot ErrP
 plotErrP(Epochs);
