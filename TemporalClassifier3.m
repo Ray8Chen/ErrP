@@ -1,5 +1,5 @@
 % Define the path to your directory containing CSV files
-directoryPath = '/Users/raychen/Desktop/BCI project/psychopy/data/subject-4';  % Update this with the correct path
+directoryPath = '/Users/raychen/Desktop/BCI project/psychopy/data/subject-13';  % Update this with the correct path
 
 % Get a list of all CSV file names in the directory
 csvFiles = {dir(fullfile(directoryPath, '*.csv')).name};
@@ -46,7 +46,7 @@ correct_segments = [];
 for i = 1:length(error_indices)
     index = error_indices(i);
     if index + window_samples(2) <= size(allEEGData, 1)
-        segment = allEEGData(index + window_samples(1):index + window_samples(2), [6, 15]);
+        segment = allEEGData(index + window_samples(1):index + window_samples(2), [2,3,4,5,6,9,15,16]);
         error_segments = [error_segments; segment'];
     end
 end
@@ -54,7 +54,7 @@ end
 for i = 1:length(correct_indices)
     index = correct_indices(i);
     if index + window_samples(2) <= size(allEEGData, 1)
-        segment = allEEGData(index + window_samples(1):index + window_samples(2), [6, 15]);
+        segment = allEEGData(index + window_samples(1):index + window_samples(2), [2,3,4,5,6,9,15,16]);
         correct_segments = [correct_segments; segment'];
     end
 end
@@ -66,6 +66,7 @@ mean_correct_segment = mean(correct_segments, 1);
 % Find the time of maximum positive difference
 diff_segment = mean_error_segment - mean_correct_segment;
 [~, max_diff_index] = max(diff_segment);
+
 
 % Convert index to time
 max_diff_time = max_diff_index / fs;
@@ -90,7 +91,7 @@ for i = 1:length(error_indices)
     % Ensure the index does not go beyond data length
     if index + window_end <= size(allEEGData, 1)
         % Extract only the 6th electrode
-        segment = allEEGData(index + window_start:index + window_end, [6, 15]);
+        segment = allEEGData(index + window_start:index + window_end, [2,3,4,5,6,9,15,16]);
         features_error(i, 1) = mean(segment, 'all'); % Mean of all values in the segment
         features_error(i, 2) = var(segment, 0, 'all'); % Variance of all values
     end
@@ -100,12 +101,25 @@ end
 for i = 1:length(correct_indices)
     index = correct_indices(i);
     if index + window_end <= size(allEEGData, 1)
-        segment = allEEGData(index + window_start:index + window_end, [6, 15]);
+        segment = allEEGData(index + window_start:index + window_end, [2,3,4,5,6,9,15,16]);
         features_correct(i, 1) = mean(segment, 'all');
         features_correct(i, 2) = var(segment, 0, 'all');
     end
 end
 
+% Apply min-max scaling to temporalFeaturesError
+if ~isempty(features_error)
+    minValError = min(features_error);
+    maxValError = max(features_error);
+    features_error = (features_error - minValError) ./ (maxValError - minValError);
+end
+
+% Apply min-max scaling to temporalFeaturesCorrect
+if ~isempty(features_correct)
+    minValCorrect = min(features_correct);
+    maxValCorrect = max(features_correct);
+    features_correct = (features_correct - minValCorrect) ./ (maxValCorrect - minValCorrect);
+end
 % Combine features and labels for classifier
 features = [features_error; features_correct];
 labels = [zeros(size(features_error, 1), 1); ones(size(features_correct, 1), 1)];
@@ -141,10 +155,10 @@ for i = 1:numFolds
                         trainCorrectIdx(randperm(length(trainCorrectIdx), minTrainSamples))];
     
      % Train the LDA classifier on the balanced training data
-    model = fitcdiscr(features(balancedTrainIdx, :), labels(balancedTrainIdx));
+    % model = fitcdiscr(features(balancedTrainIdx, :), labels(balancedTrainIdx));
 
     % Train the SVM classifier on the balanced training data
-    % model = fitcsvm(features(balancedTrainIdx, :), labels(balancedTrainIdx), 'KernelFunction', 'rbf', 'Standardize', true, 'ClassNames', [0, 1]);
+    model = fitcsvm(features(balancedTrainIdx, :), labels(balancedTrainIdx), 'KernelFunction', 'rbf', 'Standardize', true, 'ClassNames', [0, 1]);
 
     % Test the classifier on the testing data
     predictions = predict(model, features(testIdx, :));

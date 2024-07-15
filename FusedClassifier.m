@@ -1,5 +1,5 @@
 % Define the path to your directory containing CSV files
-directoryPath = '/Users/raychen/Desktop/BCI project/psychopy/data/subject-1';  % Update this with the correct path
+directoryPath = '/Users/raychen/Desktop/BCI project/psychopy/data/subject-4';  % Update this with the correct path
 
 % Get a list of all CSV file names in the directory
 csvFiles = {dir(fullfile(directoryPath, '*.csv')).name};
@@ -57,7 +57,7 @@ correct_segments = [];
 for i = 1:length(errorIndices)
     index = errorIndices(i);
     if index + window_samples(2) <= size(allEEGData, 1)
-        segment = allEEGData(index + window_samples(1):index + window_samples(2), [6, 15]);
+        segment = allEEGData(index + window_samples(1):index + window_samples(2), [2,3,4,5,6,9,15,16]);
         error_segments = [error_segments; segment'];
     end
 end
@@ -65,7 +65,7 @@ end
 for i = 1:length(correctIndices)
     index = correctIndices(i);
     if index + window_samples(2) <= size(allEEGData, 1)
-        segment = allEEGData(index + window_samples(1):index + window_samples(2), [6, 15]);
+        segment = allEEGData(index + window_samples(1):index + window_samples(2), [2,3,4,5,6,9,15,16]);
         correct_segments = [correct_segments; segment'];
     end
 end
@@ -97,7 +97,7 @@ for i = 1:length(errorIndices)
     % Ensure the index does not go beyond data length
     if index + window_end <= size(allEEGData, 1)
         % Extract only the 6th electrode
-        segment = allEEGData(index + window_start:index + window_end, [6, 15]);
+        segment = allEEGData(index + window_start:index + window_end, [2,3,4,5,6,9,15,16]);
         features_error(i, 1) = mean(segment, 'all'); % Mean of all values in the segment
         features_error(i, 2) = var(segment, 0, 'all'); % Variance of all values
     end
@@ -107,7 +107,7 @@ end
 for i = 1:length(correctIndices)
     index = correctIndices(i);
     if index + window_end <= size(allEEGData, 1)
-        segment = allEEGData(index + window_start:index + window_end, [6, 15]);
+        segment = allEEGData(index + window_start:index + window_end, [2,3,4,5,6,9,15,16]);
         features_correct(i, 1) = mean(segment, 'all');
         features_correct(i, 2) = var(segment, 0, 'all');
     end
@@ -117,6 +117,23 @@ end
 temporalFeaturesError = features_error;
 temporalFeaturesCorrect = features_correct;
 
+% Apply min-max scaling to temporalFeaturesError
+if ~isempty(temporalFeaturesError)
+    minValError = min(temporalFeaturesError);
+    maxValError = max(temporalFeaturesError);
+    temporalFeaturesError = (temporalFeaturesError - minValError) ./ (maxValError - minValError);
+end
+
+% Apply min-max scaling to temporalFeaturesCorrect
+if ~isempty(temporalFeaturesCorrect)
+    minValCorrect = min(temporalFeaturesCorrect);
+    maxValCorrect = max(temporalFeaturesCorrect);
+    temporalFeaturesCorrect = (temporalFeaturesCorrect - minValCorrect) ./ (maxValCorrect - minValCorrect);
+end
+
+% Normalize temporal features using z-score normalization
+% temporalFeaturesError = zscore(temporalFeaturesError);
+% temporalFeaturesCorrect = zscore(temporalFeaturesCorrect);
 %% Ensure Consistent Dimensions Before Concatenation
 % Check dimensions
 if size(spectralFeaturesError, 1) ~= size(temporalFeaturesError, 1)
