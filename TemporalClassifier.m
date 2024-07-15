@@ -1,5 +1,5 @@
-% Define the path to your directory containing CSV files
-directoryPath = '/Users/raychen/Desktop/BCI project/psychopy/data/subject-13';  % Update this with the correct path
+% Define the path to directory containing CSV files
+directoryPath = '/Users/raychen/Desktop/BCI project/psychopy/data/subject-13';  
 
 % Get a list of all CSV file names in the directory
 csvFiles = {dir(fullfile(directoryPath, '*.csv')).name};
@@ -39,7 +39,7 @@ allEEGData = filteredData(allEEGData, 512);
 error_indices = find(allEventIds == 0);
 correct_indices = find(allEventIds == 1);
 
-% Extract segments for error and correct events in channel 6 and 15
+% Extract segments for error and correct events in electrodes
 error_segments = [];
 correct_segments = [];
 
@@ -80,10 +80,10 @@ fprintf('Updated window_start: %.3f seconds\n', window_start / fs);
 fprintf('Updated window_end: %.3f seconds\n', window_end / fs);
 
 % Initialize feature arrays
-features_error = zeros(length(error_indices), 2); % Assuming 2 features: mean and variance
+features_error = zeros(length(error_indices), 2); 
 features_correct = zeros(length(correct_indices), 2);
 
-% Extract features using electrodes Fz(CH6) (and FCz(CH15))
+% Extract features using electrodes 
 
 % Extract features for error events
 for i = 1:length(error_indices)
@@ -153,9 +153,6 @@ for i = 1:numFolds
     % Randomly select the same number of samples from each class
     balancedTrainIdx = [trainErrorIdx(randperm(length(trainErrorIdx), minTrainSamples)); ...
                         trainCorrectIdx(randperm(length(trainCorrectIdx), minTrainSamples))];
-    
-     % Train the LDA classifier on the balanced training data
-    % model = fitcdiscr(features(balancedTrainIdx, :), labels(balancedTrainIdx));
 
     % Train the SVM classifier on the balanced training data
     model = fitcsvm(features(balancedTrainIdx, :), labels(balancedTrainIdx), 'KernelFunction', 'rbf', 'Standardize', true, 'ClassNames', [0, 1]);
@@ -190,9 +187,6 @@ for i = 1:numFolds
     trainIdx = cv.training(i);
     % Testing indices for this fold
     testIdx = cv.test(i);
-    
-    % Train the LDA classifier on the training data
-    model = fitcdiscr(features(trainIdx,:), labels(trainIdx));
     
     % Train the SVM classifier on the training data
     % model = fitcsvm(features(balancedTrainIdx, :), labels(balancedTrainIdx), 'KernelFunction', 'rbf', 'Standardize', true, 'ClassNames', [0, 1]);
@@ -231,9 +225,6 @@ for i = 1:numFolds
     trainIdx = cv.training(i);
     % Testing indices for this fold
     testIdx = cv.test(i);
-    
-    % Train the LDA classifier on the training data
-    model = fitcdiscr(features(trainIdx,:), labels(trainIdx));
     
     % Train the SVM classifier on the training data
     % model = fitcsvm(features(balancedTrainIdx, :), labels(balancedTrainIdx), 'KernelFunction', 'rbf', 'Standardize', true, 'ClassNames', [0, 1]);
