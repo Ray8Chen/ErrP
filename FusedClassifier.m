@@ -1,5 +1,5 @@
-% Define the path to your directory containing CSV files
-directoryPath = '/Users/raychen/Desktop/BCI project/psychopy/data/subject-4';  % Update this with the correct path
+% Define the path to directory containing CSV files
+directoryPath = '/Users/raychen/Desktop/BCI project/psychopy/data/subject-4'; 
 
 % Get a list of all CSV file names in the directory
 csvFiles = {dir(fullfile(directoryPath, '*.csv')).name};
@@ -23,12 +23,12 @@ for i = 1:length(csvFiles)
     eegData(isnan(eegData)) = -1;
     
     % Concatenate data from all files
-    allEEGData = [allEEGData; eegData(:, 3:18)];  % Assuming columns 3 to 18 are EEG channels
-    allEventIds = [allEventIds; eegData(:, 19)];  % Assuming column 19 is Event Ids
+    allEEGData = [allEEGData; eegData(:, 3:18)];  
+    allEventIds = [allEventIds; eegData(:, 19)];  
 end
 
 % Filter the concatenated data
-eegChannels = filteredData(allEEGData, 512);  % Adjust the sampling rate if necessary
+eegChannels = filteredData(allEEGData, 512);  
 eventIds = allEventIds;
 
 % Find indices for error and correct events
@@ -45,9 +45,9 @@ spectralFeaturesCorrect = extractPSDFeatures(correctIndices, eegChannels, Fs, fr
 
 
 %% Temporal Feature Extraction
-% Extract segments for error and correct events in channel 6 and 15
+% Extract segments for error and correct events in electrodes
 % Parameters
-fs = 512; % Sample rate (Hz) - adjust this as per your data
+fs = 512; % Sample rate (Hz) 
 time_window = [0, 0.8]; % 0 to 0.8 seconds
 window_samples = round(time_window * fs);
 
@@ -86,10 +86,10 @@ window_start = max(0, max_diff_time - 0.005) * fs;
 window_end = min(max_diff_time + 0.005, time_window(2)) * fs;
 
 % Initialize feature arrays
-features_error = zeros(length(errorIndices), 2); % Assuming 2 features: mean and variance
+features_error = zeros(length(errorIndices), 2); 
 features_correct = zeros(length(correctIndices), 2);
 
-% Extract features using electrodes Fz(CH6) (and FCz(CH15))
+% Extract features using electrodes
 
 % Extract features for error events
 for i = 1:length(errorIndices)
@@ -131,9 +131,6 @@ if ~isempty(temporalFeaturesCorrect)
     temporalFeaturesCorrect = (temporalFeaturesCorrect - minValCorrect) ./ (maxValCorrect - minValCorrect);
 end
 
-% Normalize temporal features using z-score normalization
-% temporalFeaturesError = zscore(temporalFeaturesError);
-% temporalFeaturesCorrect = zscore(temporalFeaturesCorrect);
 %% Ensure Consistent Dimensions Before Concatenation
 % Check dimensions
 if size(spectralFeaturesError, 1) ~= size(temporalFeaturesError, 1)
@@ -317,147 +314,4 @@ meanMCC = mean(mcc);
 fprintf('Average MCC: %.3f\n', meanMCC);
 
 
-% %% Classification
-% % Train a classifier
-% 
-% rng(1); % Sets the seed of the MATLAB random number generator for reproducibility
-% % Balance features in cross-validation 
-% % Parameters
-% numFolds = 8;
-% cv = cvpartition(labels, 'KFold', numFolds);
-% 
-% % Initialize arrays to store the performance metrics
-% accuracy = zeros(numFolds, 1);
-% errorRate = zeros(numFolds, 1);
-% 
-% % Cross-validation loop
-% for i = 1:numFolds
-%     % Training indices for this fold
-%     trainIdx = cv.training(i);
-%     % Testing indices for this fold
-%     testIdx = cv.test(i);
-% 
-%     % Balance the training data
-%     trainErrorIdx = find(labels(trainIdx) == 0);
-%     trainCorrectIdx = find(labels(trainIdx) == 1);
-% 
-%     % Determine the minimum number of samples between the two classes
-%     minTrainSamples = min(length(trainErrorIdx), length(trainCorrectIdx));
-% 
-%     % Randomly select the same number of samples from each class
-%     balancedTrainIdx = [trainErrorIdx(randperm(length(trainErrorIdx), minTrainSamples)); ...
-%                         trainCorrectIdx(randperm(length(trainCorrectIdx), minTrainSamples))];
-% 
-%     % Ensure labels for balancedTrainIdx are properly defined
-%     trainLabels = labels(balancedTrainIdx);
-% 
-%     % Train the SVM classifier on the balanced training data
-%     model = fitcsvm(combinedFeatures(balancedTrainIdx, :), trainLabels, 'KernelFunction', 'rbf', 'Standardize', true, 'ClassNames', [0, 1]);
-% 
-%     % Test the classifier on the testing data
-%     predictions = predict(model, combinedFeatures(testIdx, :));
-% 
-%     % Calculate accuracy
-%     correctPredictions = sum(predictions == labels(testIdx));
-%     accuracy(i) = correctPredictions / length(predictions);
-% 
-%     % Calculate error rate
-%     errorRate(i) = 1 - accuracy(i);
-% end
-% 
-% % Average performance metrics across all folds
-% meanAccuracy = mean(accuracy);
-% meanErrorRate = mean(errorRate);
-% 
-% % Display results
-% fprintf('Average Accuracy: %.2f%%\n', meanAccuracy * 100);
-% fprintf('Average Error Rate: %.2f%%\n', meanErrorRate * 100);
-% 
-% % ROC AUC
-% % Initialize arrays to store the predicted scores and actual labels
-% scores = [];
-% trueLabels = [];
-% 
-% % Cross-validation loop
-% for i = 1:numFolds
-%     % Training indices for this fold
-%     trainIdx = cv.training(i);
-%     % Testing indices for this fold
-%     testIdx = cv.test(i);
-% 
-%     % Train the SVM classifier on the balanced training data
-%     balancedTrainIdx = [find(labels(trainIdx) == 0, minTrainSamples); ...
-%                         find(labels(trainIdx) == 1, minTrainSamples)];
-%     trainLabels = labels(balancedTrainIdx);
-%     model = fitcsvm(combinedFeatures(balancedTrainIdx, :), trainLabels, 'KernelFunction', 'rbf', 'Standardize', true, 'ClassNames', [0, 1]);
-% 
-%     % Test the classifier on the testing data and obtain scores
-%     [~, score] = predict(model, combinedFeatures(testIdx,:));
-% 
-%     % Store scores and corresponding labels
-%     scores = [scores; score(:,2)];  % Assuming the second column contains the positive class scores
-%     trueLabels = [trueLabels; labels(testIdx)];
-% end
-% 
-% % Calculate ROC curve and AUC
-% [X, Y, T, AUC] = perfcurve(trueLabels, scores, 1);
-% 
-% % Plot ROC curve
-% figure;
-% plot(X, Y);
-% hold on;
-% plot([0 1], [0 1], 'r--'); % Add a reference line
-% xlabel('False Positive Rate');
-% ylabel('True Positive Rate');
-% title(sprintf('ROC Curve (AUC = %.2f)', AUC));
-% hold off;
-% 
-% % Display AUC
-% fprintf('Area Under Curve (AUC): %.2f\n', AUC);
-% 
-% % Calculate MCC
-% % Initialize arrays to store MCC for each fold
-% mcc = zeros(numFolds, 1);
-% 
-% % Cross-validation loop
-% for i = 1:numFolds
-%     % Training indices for this fold
-%     trainIdx = cv.training(i);
-%     % Testing indices for this fold
-%     testIdx = cv.test(i);
-% 
-%     % Train the SVM classifier on the balanced training data
-%     balancedTrainIdx = [find(labels(trainIdx) == 0, minTrainSamples); ...
-%                         find(labels(trainIdx) == 1, minTrainSamples)];
-%     trainLabels = labels(balancedTrainIdx);
-%     model = fitcsvm(combinedFeatures(balancedTrainIdx, :), trainLabels, 'KernelFunction', 'rbf', 'Standardize', true, 'ClassNames', [0, 1]);
-% 
-%     % Test the classifier on the testing data
-%     predictions = predict(model, combinedFeatures(testIdx,:));
-% 
-%     % Calculate confusion matrix
-%     [C,~] = confusionmat(labels(testIdx), predictions);
-% 
-%     % Extract true positives, false positives, true negatives, and false negatives
-%     TP = C(2,2);
-%     TN = C(1,1);
-%     FP = C(1,2);
-%     FN = C(2,1);
-% 
-%     % Calculate MCC
-%     numerator = TP * TN - FP * FN;
-%     denominator = sqrt((TP + FP) * (TP + FN) * (TN + FP) * (TN + FN));
-% 
-%     if denominator == 0
-%         mcc(i) = 0;  % Handle division by zero by setting MCC to 0, which is a conservative neutral value in this context
-%     else
-%         mcc(i) = numerator / denominator;
-%     end
-% end
-% 
-% % Average MCC across all folds
-% meanMCC = mean(mcc);
-% 
-% % Display average MCC
-% fprintf('Average MCC: %.3f\n', meanMCC);
 
