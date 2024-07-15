@@ -1,5 +1,5 @@
-% Define the path to your directory containing CSV files
-directoryPath = '/Users/raychen/Desktop/BCI project/psychopy/data/subject-13';  % Update this with the correct path
+% Define the path to directory containing CSV files
+directoryPath = '/Users/raychen/Desktop/BCI project/psychopy/data/subject-13'; 
 
 % Get a list of all CSV file names in the directory
 csvFiles = {dir(fullfile(directoryPath, '*.csv')).name};
@@ -117,8 +117,6 @@ for i = 1:numFolds
     balancedTrainIdx = [trainErrorIdx(randperm(length(trainErrorIdx), minTrainSamples)); ...
                         trainCorrectIdx(randperm(length(trainCorrectIdx), minTrainSamples))];
     
-     % Train the LDA classifier on the balanced training data
-    % model = fitcdiscr(features(balancedTrainIdx, :), labels(balancedTrainIdx));
 
     % Train the SVM classifier on the balanced training data
     model = fitcsvm(features(balancedTrainIdx, :), labels(balancedTrainIdx), 'KernelFunction', 'rbf', 'Standardize', true, 'ClassNames', [0, 1]);
